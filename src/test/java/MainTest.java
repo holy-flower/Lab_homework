@@ -1,5 +1,5 @@
-import org.example.Main;
-import org.example.User;
+import org.example.in.Main;
+import org.example.in.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

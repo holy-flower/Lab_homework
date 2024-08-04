@@ -1,7 +1,13 @@
-package org.example;
+package org.example.out.mappers;
+import org.example.in.Cars;
+import org.example.in.Main;
+import org.example.in.Order;
+import org.example.in.User;
+import org.example.out.mappers.ClientsInterface;
+import org.example.out.repositories.ManagersInterface;
+
 import java.util.List;
 import java.util.Scanner;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class SearchCars {

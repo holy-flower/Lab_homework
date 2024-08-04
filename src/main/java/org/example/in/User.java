@@ -1,4 +1,4 @@
-package org.example;
+package org.example.in;
 public class User {  // возможное добавление суммы у клиента
     private String fio;
     private int role;

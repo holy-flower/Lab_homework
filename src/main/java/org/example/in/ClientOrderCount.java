@@ -1,4 +1,4 @@
-package org.example;
+package org.example.in;
 public class ClientOrderCount {
     private String clientName;
     private int orderCount;

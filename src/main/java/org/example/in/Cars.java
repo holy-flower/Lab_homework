@@ -1,4 +1,4 @@
-package org.example;
+package org.example.in;
 public class Cars {
     private String brand;
     private String model;

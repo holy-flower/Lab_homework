@@ -1,4 +1,8 @@
-import org.example.*;
+import org.example.in.Cars;
+import org.example.in.Order;
+import org.example.in.User;
+import org.example.out.mappers.ClientsInterface;
+import org.example.out.mappers.SearchCars;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

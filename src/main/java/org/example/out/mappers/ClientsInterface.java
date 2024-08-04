@@ -1,4 +1,9 @@
-package org.example;
+package org.example.out.mappers;
+import org.example.in.Cars;
+import org.example.in.Main;
+import org.example.in.Order;
+import org.example.in.User;
+
 import java.util.*;
 import java.util.logging.Logger;
 

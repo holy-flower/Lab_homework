@@ -1,4 +1,4 @@
-package org.example;
+package org.example.in;
 public class Order {
     private static int orderIdCounter = 1;
     private int orderId;

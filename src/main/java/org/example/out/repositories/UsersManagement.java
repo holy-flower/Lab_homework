@@ -1,4 +1,8 @@
-package org.example;
+package org.example.out.repositories;
+import org.example.in.*;
+import org.example.out.repositories.AdministratorsInterface;
+import org.example.out.repositories.ManagersInterface;
+
 import java.util.*;
 import java.util.stream.Collectors;
 

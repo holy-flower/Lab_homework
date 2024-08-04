@@ -1,7 +1,12 @@
-package org.example;
+package org.example.out.mappers;
+import org.example.in.Cars;
+import org.example.in.Main;
+import org.example.in.Order;
+import org.example.in.User;
+import org.example.out.repositories.AdministratorsInterface;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.logging.Logger;
 
 public class CarManagement {

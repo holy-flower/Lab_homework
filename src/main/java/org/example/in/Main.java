@@ -1,4 +1,9 @@
-package org.example;
+package org.example.in;
+import org.example.out.mappers.ClientsInterface;
+import org.example.out.repositories.ManagersInterface;
+import org.example.out.mappers.SearchCars;
+import org.example.out.repositories.AdministratorsInterface;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
