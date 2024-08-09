@@ -18,8 +18,8 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.19.0")
     testImplementation("org.powermock:powermock-module-junit4:2.0.9")
     testImplementation("org.powermock:powermock-api-mockito2:2.0.9")
-
-
+    implementation("org.liquibase:liquibase-core:4.3.5")
+    implementation("org.postgresql:postgresql:42.2.23")
 }
 
 tasks.test {
