@@ -1,10 +1,11 @@
 package org.example.out.repositories;
-import org.example.in.Cars;
-import org.example.in.Main;
-import org.example.in.Order;
-import org.example.in.User;
+import org.example.in.*;
 import org.example.out.mappers.SearchCars;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Logger;
@@ -17,7 +18,7 @@ public class ManagersInterface {
 
     }
 
-    public static void managerInterface(List<User> userList, List<Cars> carList, List<Order> orderList, String email) {
+    public static void managerInterface(String email) {
         System.out.println("Menu: ");
         System.out.println("1. User Management");
         System.out.println("2. Car management");
@@ -27,25 +28,25 @@ public class ManagersInterface {
         int choice = Main.scanner.nextInt();
 
         if (choice == 1) {
-            UsersManagement.managers(userList, carList, orderList, email);
-            managerInterface(userList, carList, orderList, email);
+            UsersManagement.managers(email);
+            managerInterface(email);
         }
         else if (choice == 2) {
-            SearchCars.managersSearch(userList, carList, orderList, email);
-            managerInterface(userList, carList, orderList, email);
+            SearchCars.managersSearch(email);
+            managerInterface(email);
         }
         else if (choice == 3) {
-            ordersManagementAdmin(userList, carList, orderList, email);
-            managerInterface(userList, carList, orderList, email);
+            ordersManagementAdmin(email);
+            managerInterface(email);
         } else if (choice == 4) {
-            Main.firstList(carList, orderList);
+            Main.firstList();
         } else {
             System.out.println("Enter the number listed");
-            managerInterface(userList, carList, orderList, email);
+            managerInterface(email);
         }
     }
 
-    public static void ordersManagement(List<User> userList, List<Cars> carList, List<Order> orderList, String email, Runnable nextMethod) {
+    public static void ordersManagement(String email, Runnable nextMethod) {
         System.out.println("Menu: ");
         System.out.println("1. List of all orders");
         System.out.println("2. Changing the order status");
@@ -55,16 +56,54 @@ public class ManagersInterface {
         Main.scanner.nextLine();
 
         if (choice == 1) {
+            try (Connection connection = DatabaseManager.getConnection()) {
+                ResultSet resultSet = TableOrders.retriveRecords(connection);
+                TableOrders.printRecords(resultSet);
+            } catch (SQLException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+
+
+            /*
             if (!orderList.isEmpty()){
                 orderList.forEach(System.out::println);
             } else {
                 System.out.println("No orders yet");
             }
+             */
         } else if (choice == 2) {
             System.out.println("Enter the order ID you would like to change: ");
             int changeOrder = Main.scanner.nextInt();
             Main.scanner.nextLine();
 
+            try (Connection connection = DatabaseManager.getConnection()) {
+                String query = "SELECT * FROM orders WHERE id = ?";
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, changeOrder);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                if (resultSet.next()) {
+                    System.out.println("Enter the new order status (reservation, awaiting payment, order, on the way, arrived at the warehouse): ");
+                    String newStatus = Main.scanner.nextLine();
+
+                    String updateQuery = "UPDATE orders SET status = ? WHERE id = ?";
+                    PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
+                    updateStatement.setString(1, newStatus);
+                    updateStatement.setInt(2, changeOrder);
+                    updateStatement.executeUpdate();
+
+                    logger.info("The manager " + email + " has changed the status of the order №" + changeOrder);
+                    System.out.println("Order status successfully updated");
+                } else {
+                    System.out.println("The order with the specified ID was not found.");
+                }
+            } catch (SQLException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+
+
+
+            /*
             for (Order order : orderList) {
                 if (changeOrder == order.getOrderId()) {
                     System.out.println("Enter the new order status (reservation, awaiting payment, order, on the way, arrived at the warehouse): ");
@@ -75,20 +114,21 @@ public class ManagersInterface {
                     System.out.println("Order status successfully updated");
                 }
             }
+             */
         } else if (choice == 3) {
             nextMethod.run();
         } else {
             System.out.println("Enter the number listed");
-            ordersManagement(userList, carList, orderList, email, nextMethod);
+            ordersManagement(email, nextMethod);
         }
     }
 
-    public static void ordersManagementAdmin(List<User> userList, List<Cars> carList, List<Order> orderList, String email) {
-        ordersManagement(userList, carList, orderList, email, () -> AdministratorsInterface.adminInterface(userList, carList, orderList, email));
+    public static void ordersManagementAdmin(String email) {
+        ordersManagement(email, () -> AdministratorsInterface.adminInterface(email));
     }
 
-    public static void ordersManagementManager(List<User> userList, List<Cars> carList, List<Order> orderList, String email) {
-        ordersManagement(userList, carList, orderList, email, () -> managerInterface(userList, carList, orderList, email));
+    public static void ordersManagementManager(String email) {
+        ordersManagement(email, () -> managerInterface(email));
     }
 
     public static void setScanner(Scanner scanner) {

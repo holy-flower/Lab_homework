@@ -29,6 +29,9 @@ public class User {  // возможное добавление суммы у к
         this.password = password;
     }
 
+    public User() {
+    }
+
     public String getAdditionalInfo() {
         return additionalInfo;
     }

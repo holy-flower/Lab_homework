@@ -3,6 +3,10 @@ import org.example.in.*;
 import org.example.out.repositories.AdministratorsInterface;
 import org.example.out.repositories.ManagersInterface;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -13,7 +17,7 @@ public class UsersManagement {
 
     }
 
-    public static void userManagement(List<User> userList, List<Cars> carList, List<Order> orderList, Runnable nextMethod, String email) {
+    public static void userManagement(Runnable nextMethod, String email) {
         System.out.println("Menu: ");
         System.out.println("1. Viewing clients");
         System.out.println("2. Customer filtering");
@@ -24,49 +28,50 @@ public class UsersManagement {
         int k = 0;
 
         if (choice == 1) {
-            if (userList.size() != 0) {
-                for (User user : userList) {
-                    if (user.getRole() == 3){
-                        k++;
-                        System.out.println("Full name: " + user.getFio() +
-                                " , age: " + user.getAge() +
-                                " , email: " + user.getEmail());
-                    }
+            try (Connection connection = DatabaseManager.getConnection()) {
+                String query = "SELECT * FROM users WHERE role = 3";
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    String name = resultSet.getString("fullName");
+                    int role = resultSet.getInt("role");
+                    int age = resultSet.getInt("age");
+                    String userEmail = resultSet.getString("email");
+
+                    System.out.println("name: " + name + ", role: " + role +
+                            ", age: " + age + ", email: " + userEmail);
                 }
-                if (k == 0) {
-                    System.out.println("No clients");
-                }
-            } else {
-                System.out.println("No users");
+                userManagement(nextMethod, email);
+            } catch(SQLException e){
+                throw new RuntimeException(e);
             }
-            userManagement(userList, carList, orderList, nextMethod, email);
-        }
-        else if (choice == 2) {
-            filteredUsers(userList, carList, orderList, email, nextMethod);
-            userManagement(userList, carList, orderList, nextMethod, email);
+        } else if (choice == 2) {
+            filteredUsers(email, nextMethod);
+            userManagement(nextMethod, email);
         }
         else if (choice == 3) {
-            sortedUsers(userList, carList, orderList, email, nextMethod);
-            userManagement(userList, carList, orderList, nextMethod, email);
+            sortedUsers(email, nextMethod);
+            userManagement(nextMethod, email);
         }
         else if (choice == 4) {
             nextMethod.run();
         } else {
             System.out.println("Enter the number listed");
-            userManagement(userList, carList, orderList, nextMethod, email);
+            userManagement(nextMethod, email);
         }
     }
 
-    public static void managers(List<User> userList, List<Cars> carList, List<Order> orderList, String email) {
-        userManagement(userList, carList, orderList, () -> ManagersInterface.managerInterface(userList, carList, orderList, email), email);
+    public static void managers(String email) {
+        userManagement(() -> ManagersInterface.managerInterface(email), email);
     }
 
-    public static void admin(List<User> userList, List<Cars> carList, String email, List<Order> orderList) {
-        userManagement(userList, carList, orderList, () -> AdministratorsInterface.adminInterface(userList, carList, orderList, email), email);
+    public static void admin(String email) {
+        userManagement(() -> AdministratorsInterface.adminInterface(email), email);
     }
 
 
-    public static void filteredUsers(List<User> userList, List<Cars> carList, List<Order> orderList, String email, Runnable nextMethod) {
+    public static void filteredUsers(String email, Runnable nextMethod) {
         System.out.println("Select the user filtering criteria: ");
         System.out.println("1. By full name");
         System.out.println("2. By age");
@@ -76,16 +81,121 @@ public class UsersManagement {
         int choice = Main.scanner.nextInt();
         Main.scanner.nextLine();
 
+        String query;
+        PreparedStatement preparedStatement;
+        try (Connection connection = DatabaseManager.getConnection()) {
+            if (choice == 1) {
+                System.out.println("Enter the name you are interested in: ");
+                String fioClient = Main.scanner.nextLine();
+
+                query = "SELECT * FROM users WHERE fullName = ? AND role = 3";
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setString(1, fioClient);
+
+                ResultSet resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    do {
+                        String name = resultSet.getString("fullName");
+                        int role = resultSet.getInt("role");
+                        int age = resultSet.getInt("age");
+                        String userEmail = resultSet.getString("email");
+
+                        System.out.println("name: " + name + ", role: " + role +
+                                ", age: " + age + ", email: " + userEmail);
+                    } while (resultSet.next());
+                } else {
+                    System.out.println("Full name data not found.");
+                }
+            } else if (choice == 2) {
+                System.out.println("Enter the age you are interested in: ");
+                int ageClient = Main.scanner.nextInt();
+
+                query = "SELECT * FROM users WHERE age = ? AND role = 3";
+                preparedStatement = connection.prepareStatement(query);
+                preparedStatement.setInt(1, ageClient);
+
+                ResultSet resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    do {
+                        String name = resultSet.getString("fullName");
+                        int role = resultSet.getInt("role");
+                        int age = resultSet.getInt("age");
+                        String userEmail = resultSet.getString("email");
+
+                        System.out.println("name: " + name + ", role: " + role +
+                                ", age: " + age + ", email: " + userEmail);
+                    } while (resultSet.next());
+                } else {
+                    System.out.println("No clients with the selected age were found.");
+                }
+            } else if (choice == 3) {
+                System.out.println("Enter the number of purchases you are interested in: ");
+                int numOfPurchases = Main.scanner.nextInt();
+
+                Map<String, Integer> clientOrderCountMap = new HashMap();
+                String orderQuery = "SELECT fioClient, COUNT(*) as orderCount FROM orders GROUP BY fioClient";
+                preparedStatement = connection.prepareStatement(orderQuery);
+                ResultSet orderResultSet = preparedStatement.executeQuery();
+
+                while (orderResultSet.next()) {
+                    String clientFio = orderResultSet.getString("fioClient");
+                    int orderCount = orderResultSet.getInt("orderCount");
+                    clientOrderCountMap.put(clientFio, orderCount);
+                }
+
+                List<ClientOrderCount> clientOrderCountList = new ArrayList<>();
+                for (Map.Entry<String, Integer> entry : clientOrderCountMap.entrySet()) {
+                    clientOrderCountList.add(new ClientOrderCount(entry.getKey(), entry.getValue()));
+                }
+
+                List<User> filteredByPerchases = new ArrayList<>();
+                query = "SELECT * FROM users WHERE fullName = ? AND role = 3";
+                PreparedStatement userStatement = connection.prepareStatement(query);
+
+                for (ClientOrderCount clientOrderCount : clientOrderCountList) {
+                    if (numOfPurchases == clientOrderCount.getOrderCount()) {
+                        userStatement.setString(1, clientOrderCount.getClientName());
+                        try (ResultSet userResultSet = userStatement.executeQuery()) {
+                            while (userResultSet.next()) {
+                                User user = new User();
+                                user.setFio(userResultSet.getString("fio"));
+                                user.setEmail(userResultSet.getString("email"));
+                                user.setRole(userResultSet.getInt("role"));
+                                filteredByPerchases.add(user);
+                            }
+                        }
+                    }
+                }
+
+                if (!filteredByPerchases.isEmpty()) {
+                    filteredByPerchases.forEach(System.out::println);
+                    filteredUsers(email, nextMethod);
+                } else {
+                    System.out.println("Клиенты с таким количеством заказов не найдены.");
+                }
+
+            } else if (choice == 4) {
+                userManagement(nextMethod, email);
+            } else {
+                System.out.println("Enter the number listed");
+                filteredUsers(email, nextMethod);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+
+        /*
         if (choice == 1) {
             System.out.println("Enter the name you are interested in: ");
             String fioClient = Main.scanner.nextLine();
             List<User> filteredByFio = userList.stream().filter(person -> fioClient.equals(person.getFio()) && person.getRole() == 3).collect(Collectors.toList());
             if (filteredByFio != null){
                 filteredByFio.forEach(System.out::println);
-                filteredUsers(userList, carList, orderList, email, nextMethod);
+                filteredUsers(carList, orderList, email, nextMethod);
             } else {
                 System.out.println("Full name data not found.");
-                filteredUsers(userList, carList, orderList, email, nextMethod);
+                filteredUsers(carList, orderList, email, nextMethod);
             }
         }
         else if (choice == 2) {
@@ -94,14 +204,13 @@ public class UsersManagement {
             List<User> filteredByAge = userList.stream().filter(person -> ageClient == person.getAge() && person.getRole() == 3).collect(Collectors.toList());
             if (filteredByAge != null) {
                 filteredByAge.forEach(System.out::println);
-                filteredUsers(userList, carList, orderList, email, nextMethod);
+                filteredUsers(carList, orderList, email, nextMethod);
             }
             else {
                 System.out.println("No clients with the selected age were found.");
-                filteredUsers(userList, carList, orderList, email, nextMethod);
+                filteredUsers(carList, orderList, email, nextMethod);
             }
-        }
-        else if (choice == 3) {
+        } else if (choice == 3) {
             System.out.println("Enter the number of purchases you are interested in: ");
             int numOfPurchases = Main.scanner.nextInt();
 
@@ -124,20 +233,23 @@ public class UsersManagement {
             }
             if (!filteredByPerchases.isEmpty()) {
                 filteredByPerchases.forEach(System.out::println);
-                filteredUsers(userList, carList, orderList, email, nextMethod);
+                filteredUsers(email, nextMethod);
             } else {
                 System.out.println("No customers with this number of orders were found.");
             }
         }
         else if (choice == 4) {
-            userManagement(userList, carList, orderList, nextMethod, email);
+            userManagement(carList, orderList, nextMethod, email);
         } else {
             System.out.println("Enter the number listed");
-            filteredUsers(userList, carList, orderList, email, nextMethod);
+            filteredUsers(carList, orderList, email, nextMethod);
         }
+         */
+
+
     }
 
-    public static void sortedUsers(List<User> userList, List<Cars> carsList, List<Order> orderList, String email, Runnable nextMethod) {
+    public static void sortedUsers(String email, Runnable nextMethod) {
         System.out.println("Select the sort type: ");
         System.out.println("1. By full name");
         System.out.println("2. By age");
@@ -145,17 +257,94 @@ public class UsersManagement {
         System.out.println("4. Back");
 
         int choise = Main.scanner.nextInt();
+        String query;
+        PreparedStatement preparedStatement;
 
+        try (Connection connection = DatabaseManager.getConnection()) {
+            if (choise == 1) {
+                query = "SELECT * FROM users WHERE role = 3 ORDER BY fullName";
+                preparedStatement = connection.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                while (resultSet.next()) {
+                    System.out.println("name: " + resultSet.getString("fullName") +
+                            ", role: " + resultSet.getInt("role") +
+                            ", age: " + resultSet.getInt("age") +
+                            ", email: " + resultSet.getString("email"));
+                }
+                sortedUsers(email, nextMethod);
+            } else if (choise == 2) {
+                query = "SELECT * FROM users WHERE role = 3 ORDER BY age";
+                preparedStatement = connection.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                while (resultSet.next()) {
+                    System.out.println("name: " + resultSet.getString("fullName") +
+                            ", role: " + resultSet.getInt("role") +
+                            ", age: " + resultSet.getInt("age") +
+                            ", email: " + resultSet.getString("email"));
+                }
+                sortedUsers(email, nextMethod);
+            } else if (choise == 3) {
+                Map<String, Integer> clientOrderCountMap = new HashMap<>();
+                String orderQuery = "SELECT fioClient FROM orders";
+                PreparedStatement orderStatement = connection.prepareStatement(orderQuery);
+                ResultSet orderResultSet = orderStatement.executeQuery();
+
+                while (orderResultSet.next()) {
+                    String clientFio = orderResultSet.getString("fioClient");
+                    clientOrderCountMap.put(clientFio, clientOrderCountMap.getOrDefault(clientFio, 0) + 1);
+                }
+
+                List<ClientOrderCount> clientOrderCountList = new ArrayList<>();
+                for (Map.Entry<String, Integer> entry : clientOrderCountMap.entrySet()) {
+                    clientOrderCountList.add(new ClientOrderCount(entry.getKey(), entry.getValue()));
+                }
+
+                List<ClientOrderCount> sortedClientOrderCount = clientOrderCountList.stream()
+                        .sorted(Comparator.comparing(ClientOrderCount::getOrderCount))
+                        .collect(Collectors.toList());
+
+                List<User> sortedByPurchases = new ArrayList<>();
+                query = "SELECT * FROM users WHERE role = 3";
+                preparedStatement = connection.prepareStatement(query);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    for (ClientOrderCount clientOrderCount : sortedClientOrderCount) {
+                        if (clientOrderCount.getClientName().equals(resultSet.getString("fullName"))) {
+                            sortedByPurchases.add(new User(resultSet.getString("fullName"), resultSet.getInt("role"), resultSet.getInt("age"), resultSet.getString("email"), resultSet.getString("password").toCharArray()));
+                        }
+                    }
+                }
+                sortedByPurchases.forEach(System.out::println);
+                sortedUsers(email, nextMethod);
+            } else if (choise == 4) {
+                userManagement(nextMethod, email);
+            } else {
+                System.out.println("Enter the number listed");
+                sortedUsers(email, nextMethod);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+
+
+
+
+
+
+        /*
         if (!userList.isEmpty()) {
             if (choise == 1) {
                 List<User> sortedByFio = userList.stream().filter(person -> person.getRole() == 3)
                         .sorted(Comparator.comparing(User::getFio)).collect(Collectors.toList());
                 sortedByFio.forEach(System.out::println);
-                sortedUsers(userList, carsList, orderList, email, nextMethod);
+                sortedUsers(email, nextMethod);
             } else if (choise == 2) {
                 List<User> sortedByAge = userList.stream().filter(person -> person.getRole() == 3).sorted(Comparator.comparingInt(User::getAge)).collect(Collectors.toList());
                 sortedByAge.forEach(System.out::println);
-                sortedUsers(userList, carsList, orderList, email, nextMethod);
+                sortedUsers(email, nextMethod);
             } else if (choise == 3) {
                 Map<String, Integer> clientOrderCountMap = new HashMap();
                 for (Order order : orderList){
@@ -179,15 +368,16 @@ public class UsersManagement {
                     }
                 }
                 sortedByPurchases.forEach(System.out::println);
-                sortedUsers(userList, carsList, orderList, email, nextMethod);
+                sortedUsers(email, nextMethod);
             } else if (choise == 4) {
-                userManagement(userList, carsList, orderList, nextMethod, email);
+                userManagement(nextMethod, email);
             } else {
                 System.out.println("Enter the number listed");
-                sortedUsers(userList, carsList, orderList, email, nextMethod);
+                sortedUsers(email, nextMethod);
             }
         } else {
             System.out.println("No registered users detected");
         }
+         */
     }
 }

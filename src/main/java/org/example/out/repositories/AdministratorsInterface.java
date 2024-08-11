@@ -1,11 +1,12 @@
 package org.example.out.repositories;
-import org.example.in.Cars;
-import org.example.in.Main;
-import org.example.in.Order;
-import org.example.in.User;
+import org.example.in.*;
 import org.example.out.mappers.CarManagement;
 import org.example.out.mappers.SearchCars;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Logger;
@@ -17,7 +18,7 @@ public class AdministratorsInterface {
     public static void main(String[] args) {
     }
 
-    public static void adminInterface(List<User> userList, List<Cars> carList, List<Order> orderList, String email) {
+    public static void adminInterface(String email) {
         System.out.println("Menu: ");
         System.out.println("1. User Management");
         System.out.println("2. Car management");
@@ -29,27 +30,27 @@ public class AdministratorsInterface {
         int choice = Main.scanner.nextInt();
 
         if (choice == 1) {
-            UsersManagement.admin(userList, carList, email, orderList);
+            UsersManagement.admin(email);
         }
         else if (choice == 2) {
-            CarManagement.carManagement(userList, orderList, email);
+            CarManagement.carManagement(email);
         }
         else if (choice == 3) {
-            ManagersInterface.ordersManagementAdmin(userList, carList, orderList, email);
+            ManagersInterface.ordersManagementAdmin(email);
         }
         else if (choice == 4) {
-            managersManagement(userList, carList, orderList, email);
+            managersManagement(email);
         }
         else if (choice == 5) {
-            Main.firstList(carList, orderList);
+            Main.firstList();
         }
         else {
             System.out.println("Select a number from the list");
-            adminInterface(userList, carList, orderList, email);
+            adminInterface(email);
         }
     }
 
-    public static void managersManagement(List<User> userList, List<Cars> carList, List<Order> orderList, String email) {
+    public static void managersManagement(String email) {
         System.out.println("Menu: ");
         System.out.println("1. Viewing the list of managers");
         System.out.println("2. Change the information about the manager");
@@ -57,7 +58,74 @@ public class AdministratorsInterface {
         System.out.println("4. Back");
 
         int choice = Main.scanner.nextInt();
+        String query;
+        PreparedStatement preparedStatement;
 
+        try (Connection connection = DatabaseManager.getConnection()) {
+            switch (choice) {
+                case 1:
+                    query = "SELECT * FROM users WHERE role = 2";
+                    preparedStatement = connection.prepareStatement(query);
+
+                    ResultSet resultSet = preparedStatement.executeQuery();
+                    while (resultSet.next()) {
+                        String name = resultSet.getString("fullName");
+                        int role = resultSet.getInt("role");
+                        int age = resultSet.getInt("age");
+                        String userEmail = resultSet.getString("email");
+
+                        System.out.println("name: " + name + ", role: " + role +
+                                ", age: " + age + ", email: " + userEmail);
+                    }
+                    managersManagement(email);
+                    break;
+                case 2:
+                    System.out.println("Enter the full name of the manager whose information you want to change: ");
+                    String managerFio = Main.scanner.nextLine();
+                    changeManagerList(managerFio, email);
+                    System.out.println("Manager information has been successfully changed");
+                    break;
+                case 3:
+                    Main.scanner.nextLine();
+
+                    System.out.println("Enter the full name of the manager you want to add information about: ");
+                    String managerName = Main.scanner.nextLine();
+
+                    System.out.println("Enter additional information about the manager: ");
+                    String additionalInfo = Main.scanner.nextLine();
+
+                    query = "UPDATE users SET additionalInfo = ? WHERE fullName = ? AND role = 2";
+                    preparedStatement = connection.prepareStatement(query);
+                    preparedStatement.setString(1, additionalInfo);
+                    preparedStatement.setString(2, managerName);
+
+                    try {
+                        int rowAffected = preparedStatement.executeUpdate();
+                        if (rowAffected > 0) {
+                            System.out.println("Additional information about the manager has been successfully added");
+                        } else {
+                            System.out.println("The manager with this name was not found.");
+                        }
+                    } catch (SQLException e) {
+                        System.out.println("An error occurred: " + e.getMessage());
+                    }
+                    managersManagement(email);
+                    break;
+                case 4:
+                    adminInterface(email);
+                    break;
+                default:
+                    System.out.println("Select a number from the list");
+                    managersManagement(email);
+                    return;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+
+
+        /*
         if (choice == 1) {
             List<User> managersList = userList.stream().filter(person -> person.getRole() == 2).collect(Collectors.toList());
             managersList.forEach(System.out::println);
@@ -65,7 +133,7 @@ public class AdministratorsInterface {
         } else if (choice == 2) {
             System.out.println("Enter the full name of the manager whose information you want to change: ");
             String managerFio = Main.scanner.nextLine();
-            changeManagerList(managerFio, userList, carList, orderList, email);
+            changeManagerList(managerFio, carList, orderList, email);
             System.out.println("Manager information has been successfully changed");
         } else if (choice == 3) {
             System.out.println("Enter the full name of the manager you want to add information about: ");
@@ -87,17 +155,18 @@ public class AdministratorsInterface {
             if (!updated) {
                 System.out.println("The manager with this name was not found.");
             }
-            managersManagement(userList, carList, orderList, email);
+            managersManagement(carList, orderList, email);
 
         } else if (choice == 4) {
-            adminInterface(userList, carList, orderList, email);
+            adminInterface(carList, orderList, email);
         } else {
             System.out.println("Select a number from the list");
-            managersManagement(userList, carList, orderList, email);
+            managersManagement(carList, orderList, email);
         }
+         */
     }
 
-    public static void changeManagerList(String managerFio, List<User> userList, List<Cars> carList, List<Order> orderList, String email) {
+    public static void changeManagerList(String managerFio, String email) {
         System.out.println("What information do you want to change: ");
         System.out.println("1. Full name");
         System.out.println("2. The role");
@@ -106,6 +175,59 @@ public class AdministratorsInterface {
 
         int choice = Main.scanner.nextInt();
 
+        try (Connection connection = DatabaseManager.getConnection()) {
+            String query;
+            PreparedStatement preparedStatement;
+
+            switch (choice) {
+                case 1:
+                    System.out.println("Enter a new full name: ");
+                    String newName = Main.scanner.nextLine();
+                    query = "UPDATE users SET fullName = ? WHERE fullName = ?";
+                    preparedStatement = connection.prepareStatement(query);
+                    preparedStatement.setString(1, newName);
+                    preparedStatement.setString(2, managerFio);
+                    preparedStatement.executeUpdate();
+
+                    logger.info ("Administrator " + email + " changed the manager's full name (earlier) " + managerFio + " to " + newName);
+                    break;
+                case 2:
+                    System.out.println("Enter a new role (1. Administrator; 2. Manager; 3. Client): ");
+                    int newRole = Main.scanner.nextInt();
+                    query = "UPDATE users SET role = ? WHERE fullName = ?";
+                    preparedStatement = connection.prepareStatement(query);
+                    preparedStatement.setInt(1, newRole);
+                    preparedStatement.setString(2, managerFio);
+                    preparedStatement.executeUpdate();
+
+                    logger.info ("Administrator " + email + " changed the manager role to " + newRole);
+                    break;
+                case 3:
+                    System.out.println("Enter a new email: ");
+                    String newEmail = Main.scanner.nextLine();
+                    query = "UPDATE users SET email = ? WHERE fullName = ?";
+                    preparedStatement = connection.prepareStatement(query);
+                    preparedStatement.setString(1, email);
+                    preparedStatement.setString(2, managerFio);
+                    preparedStatement.executeUpdate();
+
+                    logger.info ("Administrator " + email + " changed manager's email " + managerFio + " to " + newEmail);
+                    break;
+                case 4:
+                    managersManagement(email);
+                    break;
+                default:
+                    System.out.println("Select a number from the list");
+                    changeManagerList(managerFio, email);
+                    return;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+
+
+        /*
         for (User user : userList) {
             if (managerFio.equals(user.getFio())) {
                 if (choice == 1) {
@@ -129,13 +251,14 @@ public class AdministratorsInterface {
                     logger.info ("Administrator " + email + " changed manager's email " + managerFio + " to " + newEmail);
 
                 } else if (choice == 4) {
-                    managersManagement(userList, carList, orderList, email);
+                    managersManagement(carList, orderList, email);
                 } else {
                     System.out.println("Select a number from the list");
-                    changeManagerList(managerFio, userList, carList, orderList, email);
+                    changeManagerList(managerFio, carList, orderList, email);
                 }
             }
         }
+         */
     }
 
     public static void setScanner(Scanner scanner) {

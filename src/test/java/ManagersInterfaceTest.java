@@ -60,7 +60,7 @@ public class ManagersInterfaceTest {
             scanner = new Scanner(System.in);
             ManagersInterface.setScanner(scanner);
 
-            ManagersInterface.managerInterface(userList, carList, orderList, email);
+            ManagersInterface.managerInterface(email);
 
         } catch (IOException e) {
             throw new RuntimeException(e);

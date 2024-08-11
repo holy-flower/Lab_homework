@@ -56,7 +56,7 @@ public class ClientsInterfaceTest {
             scanner = new Scanner(System.in);
             ClientsInterface.setScanner(scanner);
 
-            ClientsInterface.clientInterface(email, userList, carList);
+            ClientsInterface.clientInterface(email);
 
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -5,6 +5,9 @@ import org.example.out.repositories.AdministratorsInterface;
 import org.example.out.mappers.SearchCars;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -13,7 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+@Testcontainers
 public class AdministratorsInterfaceTest {
+    @Container
+    public GenericContainer<?> container = new GenericContainer<>("mysql:8.0.26").withExposedPorts(3306);
     private List<User> userList;
     private List<Cars> carList;
     private List<Order> orderList;
@@ -59,7 +65,7 @@ public class AdministratorsInterfaceTest {
             scanner = new Scanner(System.in);
             AdministratorsInterface.setScanner(scanner);
 
-            AdministratorsInterface.adminInterface(userList, carList, orderList, email);
+            AdministratorsInterface.adminInterface(email);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
