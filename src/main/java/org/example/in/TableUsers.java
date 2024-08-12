@@ -58,8 +58,8 @@ public class TableUsers {
     }
 
     static void createUserTable(Connection connection) throws SQLException {
-        String createSequenceSql = "CREATE SEQUENCE IF NOT EXISTS users_seq START WITH 1 INCREMENT BY 1";
-        String tableUsersSql = "CREATE TABLE IF NOT EXISTS users (" +
+        String createSequenceSql = "CREATE SEQUENCE IF NOT EXISTS private.users_seq START WITH 1 INCREMENT BY 1";
+        String tableUsersSql = "CREATE TABLE IF NOT EXISTS private.users (" +
                 "fullName VARCHAR(255), " +
                 "role INT, " +
                 "age INT, " +

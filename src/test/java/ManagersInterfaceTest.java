@@ -1,21 +1,30 @@
 import org.example.in.Cars;
+import org.example.in.DatabaseManager;
 import org.example.in.Order;
 import org.example.in.User;
 import org.example.out.repositories.ManagersInterface;
 import org.example.out.mappers.SearchCars;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Testcontainers
 public class ManagersInterfaceTest {
+    @Container
+    public GenericContainer<?> container = new GenericContainer<>("mysql:8.0.26").withExposedPorts(3306);
     private List<User> userList;
     private List<Cars> carList;
     private List<Order> orderList;
@@ -49,6 +58,40 @@ public class ManagersInterfaceTest {
         userList.add(user1);
         userList.add(user2);
         userList.add(user3);
+
+        String address = container.getHost();
+        Integer port = container.getMappedPort(3306);
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            for (Cars car : carList) {
+                String insertUserSql = "INSERT INTO cars (brand, model, year, VIN, price) VALUES (?, ?, ?, ?, ?)";
+                try (var preparedStatement = connection.prepareStatement(insertUserSql)) {
+                    preparedStatement.setString(1, car.getBrand());
+                    preparedStatement.setString(2, car.getModel());
+                    preparedStatement.setInt(3, car.getYear());
+                    preparedStatement.setString(4, car.getVIN());
+                    preparedStatement.setInt(5, car.getPrice());
+                    preparedStatement.executeUpdate();
+                }
+            }
+
+            for (Order order : orderList) {
+                String insertOrderSql = "INSERT INTO orders (fioClient, email, carModel, VINCar, status, cost) VALUES (?, ?, ?, ?, ?, ?)";
+                try (var preparedStatement = connection.prepareStatement(insertOrderSql)) {
+                    preparedStatement.setString(1, order.getFioClient());
+                    preparedStatement.setString(2, order.getEmail());
+                    preparedStatement.setString(3, order.getCarModel());
+                    preparedStatement.setString(4, order.getVINCar());
+                    preparedStatement.setString(5, order.getStatus());
+                    preparedStatement.setInt(6, order.getCost());
+                    preparedStatement.executeUpdate();
+                }
+            }
+
+            System.out.println("Users inserted into the database successfully.");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
         String email = "person@mail.ru";
 

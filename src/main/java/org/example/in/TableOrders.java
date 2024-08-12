@@ -48,8 +48,8 @@ public class TableOrders {
     }
 
     private static void createOrderTable(Connection connection) throws SQLException {
-        String createSequenceSql = "CREATE SEQUENCE IF NOT EXISTS orders_seq START WITH 1 INCREMENT BY 1";
-        String tableOrdersSql = "CREATE TABLE IF NOT EXISTS orders (" +
+        String createSequenceSql = "CREATE SEQUENCE IF NOT EXISTS private.orders_seq START WITH 1 INCREMENT BY 1";
+        String tableOrdersSql = "CREATE TABLE IF NOT EXISTS private.orders (" +
                 "id SERIAL PRIMARY KEY, " +
                 "fioClient VARCHAR(255), " +
                 "email VARCHAR(255), " +

@@ -45,35 +45,40 @@ public class AdministratorsInterfaceTest {
         carList.add(car1);
         carList.add(car2);
 
-        Order order1 = new Order("Aleksandr Sergeevich Pushkin", "Pushkin@mail.ru", "Model3", "WWD2174772A0022040", "reservation", 34000);
-        Order order2 = new Order("Aleksey Alekseevich Block", "Block@mail.ru", "Model4", "NND2176798A9019040", "on the way", 99000);
+        Order order1 = new Order("Aleksandr Sergeevich Pushkin", "Pushkin@mail.ru", "Model3", "WWD2867772A989264040", "reservation", 34000);
+        Order order2 = new Order("Aleksey Alekseevich Block", "Block@mail.ru", "Model4", "NND2170056A9139040", "on the way", 99000);
         orderList.add(order1);
         orderList.add(order2);
-
-        User user1 = new User("Lev Nikholaevich Tolstoy", 2, 35, "person@mail.ru", "1111".toCharArray());
-        User user2 = new User("Aleksey Alekseevich Block", 3, 37, "Block@mail.ru", "4522".toCharArray());
-        User user3 = new User("Aleksandr Sergeevich Pushkin", 3, 26, "Pushkin@mail.ru", "9573".toCharArray());
-        User user4 = new User("Anna Andreevna Ahmatova", 1, 38, "Anna@mail.ru", "8533".toCharArray());
-        userList.add(user1);
-        userList.add(user2);
-        userList.add(user3);
 
         String address = container.getHost();
         Integer port = container.getMappedPort(3306);
 
         try (Connection connection = DatabaseManager.getConnection()) {
-            // Вставка данных пользователя в таблицу
-            for (User user : userList) {
-                String insertUserSql = "INSERT INTO users (fullName, role, age, email, password) VALUES (?, ?, ?, ?, ?)";
+            for (Cars car : carList) {
+                String insertUserSql = "INSERT INTO cars (brand, model, year, VIN, price) VALUES (?, ?, ?, ?, ?)";
                 try (var preparedStatement = connection.prepareStatement(insertUserSql)) {
-                    preparedStatement.setString(1, user.getFio());
-                    preparedStatement.setInt(2, user.getRole());
-                    preparedStatement.setInt(3, user.getAge());
-                    preparedStatement.setString(4, user.getEmail());
-                    preparedStatement.setString(5, String.valueOf(user.getPassword()));
+                    preparedStatement.setString(1, car.getBrand());
+                    preparedStatement.setString(2, car.getModel());
+                    preparedStatement.setInt(3, car.getYear());
+                    preparedStatement.setString(4, car.getVIN());
+                    preparedStatement.setInt(5, car.getPrice());
                     preparedStatement.executeUpdate();
                 }
             }
+
+            for (Order order : orderList) {
+                String insertOrderSql = "INSERT INTO orders (fioClient, email, carModel, VINCar, status, cost) VALUES (?, ?, ?, ?, ?, ?)";
+                try (var preparedStatement = connection.prepareStatement(insertOrderSql)) {
+                    preparedStatement.setString(1, order.getFioClient());
+                    preparedStatement.setString(2, order.getEmail());
+                    preparedStatement.setString(3, order.getCarModel());
+                    preparedStatement.setString(4, order.getVINCar());
+                    preparedStatement.setString(5, order.getStatus());
+                    preparedStatement.setInt(6, order.getCost());
+                    preparedStatement.executeUpdate();
+                }
+            }
+
             System.out.println("Users inserted into the database successfully.");
         } catch (SQLException e) {
             throw new RuntimeException(e);

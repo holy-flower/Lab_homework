@@ -1,21 +1,30 @@
 import org.example.in.Cars;
+import org.example.in.DatabaseManager;
 import org.example.in.Order;
 import org.example.in.User;
 import org.example.out.mappers.ClientsInterface;
 import org.example.out.mappers.SearchCars;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Testcontainers
 public class ClientsInterfaceTest {
+    @Container
+    public GenericContainer<?> container = new GenericContainer<>("mysql:8.0.26").withExposedPorts(3306);
     private List<User> userList;
     private List<Cars> carList;
     private List<Order> orderList;
@@ -43,8 +52,29 @@ public class ClientsInterfaceTest {
         orderList.add(order1);
         orderList.add(order2);
 
-        User user = new User("Lev Nikholaevich Tolstoy", 3, 35, "person@mail.ru", "1111".toCharArray());
-        userList.add(user);
+        User user1 = new User("Lev Nikholaevich Tolstoy", 3, 35, "person@mail.ru", "1111".toCharArray());
+        userList.add(user1);
+
+        String address = container.getHost();
+        Integer port = container.getMappedPort(3306);
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            for (Order order : orderList) {
+                String insertOrderSql = "INSERT INTO orders (fioClient, email, carModel, VINCar, status, cost) VALUES (?, ?, ?, ?, ?, ?)";
+                try (var preparedStatement = connection.prepareStatement(insertOrderSql)) {
+                    preparedStatement.setString(1, order.getFioClient());
+                    preparedStatement.setString(2, order.getEmail());
+                    preparedStatement.setString(3, order.getCarModel());
+                    preparedStatement.setString(4, order.getVINCar());
+                    preparedStatement.setString(5, order.getStatus());
+                    preparedStatement.setInt(6, order.getCost());
+                    preparedStatement.executeUpdate();
+                }
+            }
+            System.out.println("Users inserted into the database successfully.");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
         String email = "person@mail.ru";
 

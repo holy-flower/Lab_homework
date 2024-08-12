@@ -46,8 +46,8 @@ public class TableCars {
     }
 
     private static void createCarTable(Connection connection) throws SQLException {
-        String createSequenceSql = "CREATE SEQUENCE IF NOT EXISTS cars_seq START WITH 1 INCREMENT BY 1";
-        String tableCarsSql = "CREATE TABLE IF NOT EXISTS cars (" +
+        String createSequenceSql = "CREATE SEQUENCE IF NOT EXISTS private.cars_seq START WITH 1 INCREMENT BY 1";
+        String tableCarsSql = "CREATE TABLE IF NOT EXISTS private.cars (" +
                 "brand VARCHAR(255), " +
                 "model VARCHAR(255), " +
                 "year INT, " +
