@@ -6,8 +6,6 @@ import java.util.*;
 import java.util.logging.Logger;
 
 public class ClientsInterface {
-    //private static List<Order> orderList = new ArrayList<>();
-    //private static Scanner scanner = new Scanner(System.in);
     private static final Logger logger = Logger.getLogger(SearchCars.class.getName());
 
     public static void main(String[] args) {
@@ -53,15 +51,6 @@ public class ClientsInterface {
             System.out.println("Error: " + e.getMessage());
         }
 
-        /*
-        for (Cars car : carList) {
-            System.out.println("Brand: " + car.getBrand() +
-                    ", Model: " + car.getModel() +
-                    ", Year of manufacture: " + car.getYear() +
-                    ", VIN: " + car.getVIN() + ", Price: " + car.getPrice());
-        }
-         */
-
         System.out.println("Menu: ");
         System.out.println("1. Search for a car by criteria");
         System.out.println("2. Back");
@@ -79,16 +68,6 @@ public class ClientsInterface {
     }
 
     public static void personalAccount(String email) {
-        /*
-        System.out.println("My data: ");
-        for (User user : userList) {
-            if (user.getEmail().equals(email)) {
-                System.out.println("Full name: " + user.getFio() +
-                        " , Age: " + user.getAge() +
-                        " , Email: " + user.getEmail());
-            }
-        }
-         */
         try (Connection connection = DatabaseManager.getConnection()) {
             String query = "SELECT * FROM users WHERE email = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -173,38 +152,6 @@ public class ClientsInterface {
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
-
-
-
-
-
-
-        /*
-        if (!carList.isEmpty()) {
-            boolean carFound = false;
-            for (Order order : orderList) {
-                if (order.getEmail().equals(email)) {
-                    for (Cars car : carList) {
-                        if (carVIN.equals(car.getVIN())) {
-                            Order serviceOrder = new Order(userFio, email, car.getModel(), carVIN, "Отправлен на обслуживание", car.getPrice());
-                            orderList.add(serviceOrder);
-                            logger.info ("User " + email + "sent the car " + carVIN + " for maintenance");
-                            carFound = true;
-                            break;
-                        }
-                    }
-                }
-                if (carFound) {
-                    break;
-                }
-            }
-            if (!carFound) {
-                System.out.println("The car with this VIN was not found.");
-            }
-        } else {
-            System.out.println("No cars available");
-        }
-         */
     }
 
     public static void createOrder(String email) {
@@ -259,57 +206,11 @@ public class ClientsInterface {
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
-
-
-
-
-
-        /*
-        if (!carList.isEmpty()) {
-            boolean carFound = false;
-            for (Cars car : carList) {
-                if (carVIN.equals(car.getVIN())) {
-                    if (isCarOrdered(carVIN)) {
-                        System.out.println("This car has already been ordered.");
-                    } else {
-                        Order order = new Order(userFio, email, car.getModel(), carVIN, "Reservation", car.getPrice());
-                        TableOrders.main(order);
-                        logger.info ("User " + email + " ordered a car " + carVIN);
-                        carFound = true;
-                    }
-                    break;
-                }
-            }
-            if (!carFound) {
-                System.out.println("The car with this VIN was not found.");
-            }
-        } else {
-            System.out.println("No cars available");
-        }
-
-
-        private static boolean isCarOrdered(String carVIN) {
-        for (Order order : orderList) {
-            if (order.getVINCar().equals(carVIN)) {
-                return true;
-            }
-        }
-        return false;
-    }
-         */
     }
 
 
 
     public static String searchClient(String email) {
-        /*
-        for (User user : userList) {
-            if (email.equals(user.getEmail())){
-                return user.getFio();
-            }
-        }
-        return "";
-         */
         String userName = null;
         try (Connection connection = DatabaseManager.getConnection()) {
             String query = "SELECT fullName FROM users WHERE email = ?";
@@ -370,35 +271,6 @@ public class ClientsInterface {
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
-
-
-
-
-
-        /*
-        if (!orderList.isEmpty()) {
-            System.out.println("Enter the order ID to cancel it:");
-            int orderId = Main.scanner.nextInt();
-            boolean orderFound = false;
-
-            Iterator<Order> iterator = orderList.iterator();
-            while (iterator.hasNext()) {
-                Order order = iterator.next();
-                if (order.getEmail().equals(email) && order.getOrderId() == orderId) {
-                    iterator.remove();
-                    System.out.println("Order cancelled: " + order);
-                    logger.info ("User " + email + " cancelled car order " + order.getVINCar());
-                    orderFound = true;
-                    break;
-                }
-            }
-            if (!orderFound) {
-                System.out.println("The order with the specified ID was not found.");
-            }
-        } else {
-            System.out.println("You don't have any orders yet.");
-        }
-         */
     }
 
     public static void setScanner(Scanner scanner) {

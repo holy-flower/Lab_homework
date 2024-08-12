@@ -1,4 +1,5 @@
 import org.example.in.Cars;
+import org.example.in.DatabaseManager;
 import org.example.in.Order;
 import org.example.in.User;
 import org.example.out.repositories.AdministratorsInterface;
@@ -12,6 +13,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -54,6 +57,27 @@ public class AdministratorsInterfaceTest {
         userList.add(user1);
         userList.add(user2);
         userList.add(user3);
+
+        String address = container.getHost();
+        Integer port = container.getMappedPort(3306);
+
+        try (Connection connection = DatabaseManager.getConnection()) {
+            // Вставка данных пользователя в таблицу
+            for (User user : userList) {
+                String insertUserSql = "INSERT INTO users (fullName, role, age, email, password) VALUES (?, ?, ?, ?, ?)";
+                try (var preparedStatement = connection.prepareStatement(insertUserSql)) {
+                    preparedStatement.setString(1, user.getFio());
+                    preparedStatement.setInt(2, user.getRole());
+                    preparedStatement.setInt(3, user.getAge());
+                    preparedStatement.setString(4, user.getEmail());
+                    preparedStatement.setString(5, String.valueOf(user.getPassword()));
+                    preparedStatement.executeUpdate();
+                }
+            }
+            System.out.println("Users inserted into the database successfully.");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
         String email = "Anna@mail.ru";
 

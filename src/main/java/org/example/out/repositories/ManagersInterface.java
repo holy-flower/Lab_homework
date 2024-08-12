@@ -11,7 +11,6 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 
 public class ManagersInterface {
-    //private static Scanner scanner = new Scanner(System.in);
     private static final Logger logger = Logger.getLogger(SearchCars.class.getName());
 
     public static void main(String[] args) {
@@ -62,15 +61,6 @@ public class ManagersInterface {
             } catch (SQLException e) {
                 System.out.println("Error: " + e.getMessage());
             }
-
-
-            /*
-            if (!orderList.isEmpty()){
-                orderList.forEach(System.out::println);
-            } else {
-                System.out.println("No orders yet");
-            }
-             */
         } else if (choice == 2) {
             System.out.println("Enter the order ID you would like to change: ");
             int changeOrder = Main.scanner.nextInt();
@@ -100,21 +90,6 @@ public class ManagersInterface {
             } catch (SQLException e) {
                 System.out.println("Error: " + e.getMessage());
             }
-
-
-
-            /*
-            for (Order order : orderList) {
-                if (changeOrder == order.getOrderId()) {
-                    System.out.println("Enter the new order status (reservation, awaiting payment, order, on the way, arrived at the warehouse): ");
-                    String newStatus = Main.scanner.nextLine();
-                    order.setStatus(newStatus);
-
-                    logger.info("The manager " + email + " has changed the status of the order №" + changeOrder);
-                    System.out.println("Order status successfully updated");
-                }
-            }
-             */
         } else if (choice == 3) {
             nextMethod.run();
         } else {

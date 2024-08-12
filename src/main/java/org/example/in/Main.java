@@ -15,9 +15,6 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 
 public class Main {
-    //public static List<User> userList = new ArrayList<>();
-    //private static List<Cars> carList;
-    //private static List<Order> orderList;
     public static Scanner scanner = new Scanner(System.in);
     private static final Logger logger = Logger.getLogger(SearchCars.class.getName());
 

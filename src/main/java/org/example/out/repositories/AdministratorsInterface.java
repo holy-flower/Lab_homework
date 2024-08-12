@@ -26,7 +26,6 @@ public class AdministratorsInterface {
         System.out.println("4. Managing managers");
         System.out.println("5. Log out of your account");
 
-        //Scanner scanner = new Scanner(System.in);
         int choice = Main.scanner.nextInt();
 
         if (choice == 1) {
@@ -122,48 +121,6 @@ public class AdministratorsInterface {
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
-
-
-
-        /*
-        if (choice == 1) {
-            List<User> managersList = userList.stream().filter(person -> person.getRole() == 2).collect(Collectors.toList());
-            managersList.forEach(System.out::println);
-            managersManagement(userList, carList, orderList, email);
-        } else if (choice == 2) {
-            System.out.println("Enter the full name of the manager whose information you want to change: ");
-            String managerFio = Main.scanner.nextLine();
-            changeManagerList(managerFio, carList, orderList, email);
-            System.out.println("Manager information has been successfully changed");
-        } else if (choice == 3) {
-            System.out.println("Enter the full name of the manager you want to add information about: ");
-            String managerName = Main.scanner.nextLine();
-
-            System.out.println("Enter additional information about the manager: ");
-            String additionalInfo = Main.scanner.nextLine();
-
-            boolean updated = false;
-            for (User user : userList) {
-                if (managerName.equals(user.getFio()) && user.getRole() == 2) {
-                    user.setAdditionalInfo(additionalInfo);
-
-                    System.out.println("Additional information about the manager has been successfully added");
-                    updated = true;
-                    break;
-                }
-            }
-            if (!updated) {
-                System.out.println("The manager with this name was not found.");
-            }
-            managersManagement(carList, orderList, email);
-
-        } else if (choice == 4) {
-            adminInterface(carList, orderList, email);
-        } else {
-            System.out.println("Select a number from the list");
-            managersManagement(carList, orderList, email);
-        }
-         */
     }
 
     public static void changeManagerList(String managerFio, String email) {
@@ -224,41 +181,6 @@ public class AdministratorsInterface {
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
         }
-
-
-
-        /*
-        for (User user : userList) {
-            if (managerFio.equals(user.getFio())) {
-                if (choice == 1) {
-                    System.out.println("Enter a new full name: ");
-                    String newName = Main.scanner.nextLine();
-                    user.setFio(newName);
-
-                    logger.info ("Administrator " + email + " changed the manager's full name (earlier) " + managerFio + " to " + newName);
-                } else if (choice == 2) {
-                    System.out.println("Enter a new role (1. Administrator; 2. Manager; 3. Client): ");
-                    int newRole = Main.scanner.nextInt();
-                    user.setRole(newRole);
-
-                    logger.info ("Administrator " + email + " changed the manager role to " + newRole);
-
-                } else if (choice == 3) {
-                    System.out.println("Enter a new email: ");
-                    String newEmail = Main.scanner.nextLine();
-                    user.setEmail(newEmail);
-
-                    logger.info ("Administrator " + email + " changed manager's email " + managerFio + " to " + newEmail);
-
-                } else if (choice == 4) {
-                    managersManagement(carList, orderList, email);
-                } else {
-                    System.out.println("Select a number from the list");
-                    changeManagerList(managerFio, carList, orderList, email);
-                }
-            }
-        }
-         */
     }
 
     public static void setScanner(Scanner scanner) {
